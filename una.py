@@ -3,7 +3,23 @@ import os
 import multiprocessing
 from pathlib import Path
 from mods import colors
-from mods.build import get_build_env
+from mods.build import get_build_env, SubprocessRunner
+
+
+# Module-level runner, initialized when needed
+_runner = None
+
+def _get_runner(trace_file=None):
+    """Get or create the subprocess runner."""
+    global _runner
+    if _runner is None:
+        _runner = SubprocessRunner(trace_file)
+    return _runner
+
+def set_trace_file(trace_file):
+    """Set the trace file for subprocess logging."""
+    global _runner
+    _runner = SubprocessRunner(trace_file)
 
 def target_build(staging_dir: Path, target_dir: Path, arch="x32"):
     colors.info(f"wireguard-tools: target_build ({arch})")
@@ -27,7 +43,7 @@ def target_build(staging_dir: Path, target_dir: Path, arch="x32"):
         f"-j{make_jobs}",
         "V=1"
     ]
-    subprocess.run(cmd, cwd=repo_root, env=get_build_env(), check=True)
+    _get_runner().run(cmd, cwd=repo_root, env=get_build_env(), check=True)
 
 def target_install(staging_dir: Path, target_dir: Path, arch="x32"):
     colors.info(f"wireguard-tools: target_install ({arch})")
@@ -52,4 +68,4 @@ def target_install(staging_dir: Path, target_dir: Path, arch="x32"):
             "WITH_BASHCOMPLETION=no",
             "WITH_SYSTEMDUNITS=no"
         ]
-        subprocess.run(cmd, cwd=repo_root, env=get_build_env(), check=True)
+        _get_runner().run(cmd, cwd=repo_root, env=get_build_env(), check=True)
