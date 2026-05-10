@@ -3,14 +3,7 @@ import os
 import multiprocessing
 from pathlib import Path
 from mods import colors
-
-def get_env():
-    env = os.environ.copy()
-    # Path to our host-built LLVM tools
-    project_root = Path(__file__).parent.parent.parent
-    host_bin = project_root / "bld" / "host" / "bin"
-    env["PATH"] = f"{host_bin}:{env.get('PATH', '')}"
-    return env
+from mods.build import get_build_env
 
 def target_build(staging_dir: Path, target_dir: Path, arch="x32"):
     colors.info(f"wireguard-tools: target_build ({arch})")
@@ -34,7 +27,7 @@ def target_build(staging_dir: Path, target_dir: Path, arch="x32"):
         f"-j{make_jobs}",
         "V=1"
     ]
-    subprocess.run(cmd, cwd=repo_root, env=get_env(), check=True)
+    subprocess.run(cmd, cwd=repo_root, env=get_build_env(), check=True)
 
 def target_install(staging_dir: Path, target_dir: Path, arch="x32"):
     colors.info(f"wireguard-tools: target_install ({arch})")
@@ -59,4 +52,4 @@ def target_install(staging_dir: Path, target_dir: Path, arch="x32"):
             "WITH_BASHCOMPLETION=no",
             "WITH_SYSTEMDUNITS=no"
         ]
-        subprocess.run(cmd, cwd=repo_root, env=get_env(), check=True)
+        subprocess.run(cmd, cwd=repo_root, env=get_build_env(), check=True)
